@@ -1,8 +1,17 @@
 import express, { type Router } from 'express';
 
-import { getTodo, getTodos, postDeleteTodo, postTodo, postUpdateTodo } from '../controllers/todo';
+import {
+  getIndex,
+  getTodo,
+  getTodos,
+  postDeleteTodo,
+  postTodo,
+  postUpdateTodo,
+} from '../controllers/todo';
 
 export const router: Router = express.Router();
+
+router.get('/', getIndex);
 
 router.get('/todos', getTodos);
 
