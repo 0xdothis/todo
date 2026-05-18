@@ -26,7 +26,7 @@ export const getTodo = (req: Request, res: Response): Response<TodoResponse | To
   if (!todo) {
     return res.status(404).json({
       status: 'Not Found',
-      statusCode: 400,
+      statusCode: 404,
       message: 'todo id not found',
     });
   }
@@ -43,7 +43,6 @@ export const getTodo = (req: Request, res: Response): Response<TodoResponse | To
 export const getTodos = (req: Request, res: Response): Response<TodoResponse> => {
   const todos = Todo.fetchTodos();
 
-  console.log(todos);
   return res.status(200).json({
     status: 'OK',
     statusCode: 200,
@@ -63,7 +62,7 @@ export const getTodos = (req: Request, res: Response): Response<TodoResponse> =>
         {
           "id": 3,
           "title": "Clean the house",
-          "description": "make sure the mop every 48hours",
+          "description": "make sure the mop every 48hours"
         },
         {
           "id": 4,
@@ -96,6 +95,26 @@ export const postTodo = (req: Request, res: Response): Response<TodoStatus> => {
 };
 
 export const postDeleteTodo = (req: Request, res: Response): Response<TodoStatus> => {
+  const todoId = req.params.todoId;
+
+  if (!todoId) {
+    return res.status(404).json({
+      status: 'Not Found',
+      statusCode: 400,
+      message: 'todo id not found',
+    });
+  }
+
+  const todos = Todo.deleteById(Number(todoId));
+
+  if (!todos) {
+    return res.status(404).json({
+      status: 'Not Found',
+      statusCode: 404,
+      message: 'todo id not found',
+    });
+  }
+
   return res.status(200).json({
     status: 'OK',
     statusCode: 200,
@@ -104,9 +123,23 @@ export const postDeleteTodo = (req: Request, res: Response): Response<TodoStatus
 };
 
 export const postUpdateTodo = (req: Request, res: Response): Response<TodoStatus> => {
+  const todoId = req.params.todoId;
+  const updatedTodo = req.body;
+
+  if (Number(todoId) !== updatedTodo.id) {
+    return res.status(400).json({
+      status: 'Bad Request',
+      statusCode: 400,
+      message: "Todo Id can't be modified or changed",
+    });
+  }
+
+  const todo = Todo.updateTodo({ ...updatedTodo });
+
   return res.status(200).json({
     status: 'OK',
     statusCode: 200,
     message: 'Todo updated succesfully',
+    data: todo,
   });
 };

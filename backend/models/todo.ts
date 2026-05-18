@@ -1,4 +1,4 @@
-import type { TodoStatus, TodoType } from '../types';
+import type { TodoType } from '../types';
 
 const todos: TodoType[] = [];
 
@@ -13,10 +13,8 @@ export class Todo {
     this.description = description;
   }
 
-  save(): TodoStatus {
+  save() {
     todos.push(this);
-
-    console.log(this);
 
     return {
       status: 'OK',
@@ -32,8 +30,42 @@ export class Todo {
   static findById(id: number) {
     const todo = todos.find((t) => t.id === id);
 
-    console.log(todo);
-
     return todo;
+  }
+
+  static deleteById(id: number) {
+    const todoIndex = todos.findIndex((todo) => todo.id === id);
+
+    todos.splice(todoIndex, 1);
+
+    return todos;
+  }
+
+  static updateTodo({ id, title, description }: TodoType) {
+    if (!id)
+      return {
+        status: 'Not Found',
+        statusCode: 404,
+        message: 'Todo id not found',
+      };
+
+    if (title.trim() === '' || description.trim() === '') {
+      return {
+        status: 'Bad Request',
+        statusCode: 400,
+        message: 'title or description can not be empty',
+      };
+    }
+
+    const todoIndex = todos.findIndex((todo) => todo.id === id);
+
+    todos[todoIndex] = { id, title, description };
+
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'Todo Created Succefully',
+      data: [todos[todoIndex]],
+    };
   }
 }

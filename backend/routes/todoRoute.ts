@@ -17,8 +17,8 @@ router.get('/todos', getTodos);
 
 router.get('/todos/:todoId', getTodo);
 
-router.post('/todos/create-todo', postTodo);
+router.post('/todos', postTodo);
 
-router.post('/todos/:todoId', postDeleteTodo);
+router.delete('/todos/:todoId', postDeleteTodo);
 
-router.post('/todos/:todoId', postUpdateTodo);
+router.patch('/todos/:todoId', postUpdateTodo);
