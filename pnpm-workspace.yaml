@@ -1,0 +1,4 @@
+packages:
+  - "." # Includes the root folder
+  - "backend"
+  - "frontend"
