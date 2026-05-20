@@ -20,23 +20,23 @@
 [4]: https://postman.com
 
 <h2> Respository Structure </h2>  
-/todo  
-|--- /backend  
+/todo \ 
+|--- /backend  \
      |--- /controllers  
-     |    |--- error.ts             # Handles routes that doesn't exist #404  
-     |    |--- todo.ts              # Handles functions for each routes and their responses  
+     |    |--- error.ts             # Handles routes that doesn't exist #404  \
+     |    |--- todo.ts              # Handles functions for each routes and their responses  \
      |--- /models  
-     |    |--- todo.ts              # Schema on how to handle the todo database  
-     |--- /routes
-     |    |--- todoRoutes.ts        # Handles and export all `ROUTES` using express router  
-     |    |--- error.ts             # Handle and export routes that are not found  
-     |--- /types  
-     |    |--- index.ts             # Handles all type related to the todo data  
-     |--- /utils                    # Handles reusable functions  
-     |--- app.ts                    # Main server entrance  
-     |--- package.json              # All project dependencies related to the backend  
-     |--- tsconfig.json  
-     |--- README.md
+     |    |--- todo.ts              # Schema on how to handle the todo database  \
+     |--- /routes  \
+     |    |--- todoRoutes.ts        # Handles and export all `ROUTES` using express router  \
+     |    |--- error.ts             # Handle and export routes that are not found  \
+     |--- /types  \
+     |    |--- index.ts             # Handles all type related to the todo data  \
+     |--- /utils                    # Handles reusable functions  \
+     |--- app.ts                    # Main server entrance  \
+     |--- package.json              # All project dependencies related to the backend  \
+     |--- tsconfig.json  \
+     |--- README.md  \
 
 <h2 id="started"> Getting Started </h2>
 
