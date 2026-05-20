@@ -1,8 +1,8 @@
 import type { Response, Request } from 'express';
-import type { TodoResponse, TodoStatus } from '../types/index';
+import type { TodoResponse, CreateTodoItemRequest, TodoItem } from '../types/index';
 import { Todo } from '../models/todo';
 
-export const getIndex = (req: Request, res: Response): Response<TodoStatus> => {
+export const getIndex = (req: Request, res: Response) => {
   return res.status(200).json({
     status: 'OK',
     statusCode: 200,
@@ -10,44 +10,50 @@ export const getIndex = (req: Request, res: Response): Response<TodoStatus> => {
   });
 };
 
-export const getTodo = (req: Request, res: Response): Response<TodoResponse | TodoStatus> => {
-  const todoId = req.params.todoId;
+export const getTodo = async (
+  req: CreateTodoItemRequest,
+  res: Response<TodoResponse<TodoItem>>,
+): Promise<Response<TodoResponse<TodoItem>>> => {
+  try {
+    const todoId = req.params.todoId;
 
-  if (!todoId) {
-    return res.status(404).json({
-      status: 'Not Found',
-      statusCode: 400,
-      message: 'todo id not found',
+    const todo = await Todo.findById(todoId);
+
+    if (!todo) {
+      throw new Error();
+    }
+
+    return res.status(200).json({
+      status: 'OK',
+      statusCode: 200,
+      data: todo,
     });
-  }
-
-  const todo = Todo.findById(Number(todoId));
-
-  if (!todo) {
+  } catch {
     return res.status(404).json({
       status: 'Not Found',
       statusCode: 404,
-      message: 'todo id not found',
+      error: {
+        message: 'Todo not found',
+      },
     });
   }
-
-  return res.status(200).json({
-    status: 'OK',
-    statusCode: 200,
-    data: {
-      todos: [todo],
-    },
-  });
 };
 
-export const getTodos = (req: Request, res: Response): Response<TodoResponse> => {
-  const todos = Todo.fetchTodos();
+export const getTodos = async (
+  req: Request,
+  res: Response<TodoResponse<TodoItem[]>>,
+): Promise<Response<TodoResponse<TodoItem[]>>> => {
+  try {
+    const todos = await Todo.fetchTodos();
 
-  return res.status(200).json({
-    status: 'OK',
-    statusCode: 200,
-    data: {
-      todos,
+    if (!todos) {
+      throw new Error();
+    }
+
+    return res.status(200).json({
+      status: 'OK',
+      statusCode: 200,
+      data: todos,
       /** [
         {
           "id": 1,
@@ -76,70 +82,123 @@ export const getTodos = (req: Request, res: Response): Response<TodoResponse> =>
         },
       ],
       */
-    },
-  });
-};
-
-export const postTodo = (req: Request, res: Response): Response<TodoStatus> => {
-  console.log(req.body);
-  const todo = new Todo(req.body);
-
-  todo.save();
-
-  return res.status(200).json({
-    status: 'OK',
-    statusCode: 200,
-    message: 'Todo created succesfully',
-    data: todo,
-  });
-};
-
-export const postDeleteTodo = (req: Request, res: Response): Response<TodoStatus> => {
-  const todoId = req.params.todoId;
-
-  if (!todoId) {
-    return res.status(404).json({
-      status: 'Not Found',
-      statusCode: 400,
-      message: 'todo id not found',
     });
-  }
-
-  const todos = Todo.deleteById(Number(todoId));
-
-  if (!todos) {
+  } catch {
     return res.status(404).json({
       status: 'Not Found',
       statusCode: 404,
-      message: 'todo id not found',
+      error: {
+        message: "Todo's array is empty",
+      },
     });
   }
-
-  return res.status(200).json({
-    status: 'OK',
-    statusCode: 200,
-    message: 'Todo deleted succesfully',
-  });
 };
 
-export const postUpdateTodo = (req: Request, res: Response): Response<TodoStatus> => {
-  const todoId = req.params.todoId;
-  const updatedTodo = req.body;
+export const postTodo = async (
+  req: CreateTodoItemRequest,
+  res: Response<TodoResponse<TodoItem>>,
+): Promise<Response<TodoResponse<TodoItem>>> => {
+  try {
+    const todo = new Todo(req.body);
 
-  if (Number(todoId) !== updatedTodo.id) {
-    return res.status(400).json({
-      status: 'Bad Request',
-      statusCode: 400,
-      message: "Todo Id can't be modified or changed",
+    todo.save();
+
+    return res.status(201).json({
+      status: 'Created',
+      statusCode: 201,
+      data: todo,
+    });
+  } catch {
+    return res.status(503).json({
+      status: 'Internal Server Error',
+      statusCode: 503,
+      error: {
+        message: 'Something went wrong',
+      },
     });
   }
+};
 
-  const todo = Todo.updateTodo({ ...updatedTodo });
+export const deleteTodo = async (
+  req: CreateTodoItemRequest,
+  res: Response<TodoResponse<TodoItem>>,
+): Promise<Response<TodoResponse<TodoItem>>> => {
+  try {
+    const todoId = req.params.todoId;
 
-  return res.status(200).json({
-    status: 'OK',
-    statusCode: 200,
-    message: 'Todo updated succesfully',
-    data: todo,
-  });
+    if (!todoId) {
+      throw new Error();
+    }
+
+    const todo = await Todo.deleteById(todoId);
+
+    if (!todo) {
+      throw new Error();
+    }
+
+    return res.status(204).json({
+      status: 'No Content',
+      statusCode: 204,
+      data: todo,
+    });
+  } catch {
+    return res.status(404).json({
+      status: 'Not Found',
+      statusCode: 404,
+      error: {
+        message: 'Todo not found',
+      },
+    });
+  }
+};
+
+export const patchUpdateTodo = async (
+  req: CreateTodoItemRequest,
+  res: Response<TodoResponse<TodoItem>>,
+): Promise<Response<TodoResponse<TodoItem>>> => {
+  try {
+    const todoId = req.params.todoId;
+
+    const todo = await Todo.findById(todoId);
+
+    if (!todo) {
+      throw new Error();
+    }
+    console.log(typeof todoId);
+
+    if (todoId !== todo.id) {
+      console.log('where is the error');
+      throw new Error();
+    }
+
+    // const updateData = req.body;
+    /**
+    if(!["title", "description"].every(key => key in updateData)) {
+
+      return res.status(400).json({
+      status: 'Bad Request',
+      statusCode: 400,
+      error: {
+        message: 'title or description cannot be empty'
+      }
+
+    })
+    }
+   */
+    const updatedTodo = await Todo.updateTodo(todoId, { ...req.body });
+
+    return res.status(204).json({
+      status: 'No Content',
+      statusCode: 204,
+      data: updatedTodo!,
+    });
+  } catch {
+    return res.status(404).json({
+      status: 'Not Found',
+      statusCode: 404,
+      error: {
+        message: 'Todo not found',
+      },
+    });
+  }
 };

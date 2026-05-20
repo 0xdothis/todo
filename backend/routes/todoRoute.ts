@@ -4,9 +4,9 @@ import {
   getIndex,
   getTodo,
   getTodos,
-  postDeleteTodo,
+  deleteTodo,
   postTodo,
-  postUpdateTodo,
+  patchUpdateTodo,
 } from '../controllers/todo';
 
 export const router: Router = express.Router();
@@ -19,6 +19,6 @@ router.get('/todos/:todoId', getTodo);
 
 router.post('/todos', postTodo);
 
-router.delete('/todos/:todoId', postDeleteTodo);
+router.delete('/todos/:todoId', deleteTodo);
 
-router.patch('/todos/:todoId', postUpdateTodo);
+router.patch('/todos/:todoId', patchUpdateTodo);

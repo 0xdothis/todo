@@ -1,71 +1,64 @@
-import type { TodoType } from '../types';
+import type { TodoItem, CreateTodoItem } from '../types';
 
-const todos: TodoType[] = [];
+const todos: TodoItem[] = [];
 
 export class Todo {
-  id: number;
+  id: string;
   title: string;
   description: string;
+  completed: boolean;
 
-  constructor({ id, title, description }: TodoType) {
-    this.id = id;
+  constructor({ title, description }: CreateTodoItem) {
+    this.id = crypto.randomUUID();
     this.title = title;
     this.description = description;
+    this.completed = false;
   }
 
-  save() {
+  async save(): Promise<string> {
     todos.push(this);
 
-    return {
-      status: 'OK',
-      statusCode: 200,
-      message: 'Todo Created Succefully',
-    };
+    return 'todo created successfully';
   }
 
-  static fetchTodos() {
-    return todos;
+  static async fetchTodos(): Promise<TodoItem[] | null> {
+    return todos || null;
   }
 
-  static findById(id: number) {
+  static async findById(id: string): Promise<TodoItem | null> {
     const todo = todos.find((t) => t.id === id);
 
-    return todo;
+    return todo || null;
   }
 
-  static deleteById(id: number) {
+  static async deleteById(id: string): Promise<TodoItem | null> {
     const todoIndex = todos.findIndex((todo) => todo.id === id);
+
+    if (todoIndex === -1) {
+      return null;
+    }
 
     todos.splice(todoIndex, 1);
 
-    return todos;
+    const deletedTodo = todos[todoIndex]!;
+
+    return deletedTodo;
   }
 
-  static updateTodo({ id, title, description }: TodoType) {
-    if (!id)
-      return {
-        status: 'Not Found',
-        statusCode: 404,
-        message: 'Todo id not found',
-      };
-
-    if (title.trim() === '' || description.trim() === '') {
-      return {
-        status: 'Bad Request',
-        statusCode: 400,
-        message: 'title or description can not be empty',
-      };
-    }
-
+  static async updateTodo(
+    id: string,
+    { title, description, completed }: CreateTodoItem,
+  ): Promise<TodoItem | null> {
     const todoIndex = todos.findIndex((todo) => todo.id === id);
 
-    todos[todoIndex] = { id, title, description };
+    if (todoIndex === -1) {
+      return null;
+    }
 
-    return {
-      status: 'OK',
-      statusCode: 200,
-      message: 'Todo Created Succefully',
-      data: [todos[todoIndex]],
-    };
+    todos[todoIndex] = { id, title, description, completed };
+
+    const updatedTodo = todos[todoIndex];
+
+    return updatedTodo;
   }
 }
