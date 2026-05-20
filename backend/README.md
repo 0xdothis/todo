@@ -19,25 +19,24 @@
 [3]: https://expressjs.com
 [4]: https://postman.com
 
-<h2> Respository Structure </h2>
-
-/todo
-|--- /backend
-|--- /controllers
-| |--- error.ts # Handles routes that doesn't exist #404
-| |--- todo.ts # Handles functions for each routes and their responses
-|--- /models
-| |--- todo.ts # Schema on how to handle the todo database
-|--- /routes
-| |--- todoRoutes.ts # Handles and export all `ROUTES` using express router
-| |--- error.ts # Handle and export routes that are not found
-|--- /types
-| |--- index.ts # Handles all type related to the todo data
-|--- /utils # Handles reusable functions
-|--- app.ts # Main server entrance
-|--- package.json # All project dependencies related to the backend
-|--- tsconfig.json
-|--- README.md
+<h2> Respository Structure </h2>  
+/todo  
+|--- /backend  
+     |--- /controllers  
+     |    |--- error.ts             # Handles routes that doesn't exist #404  
+     |    |--- todo.ts              # Handles functions for each routes and their responses  
+     |--- /models  
+     |    |--- todo.ts              # Schema on how to handle the todo database  
+     |--- /routes
+     |    |--- todoRoutes.ts        # Handles and export all `ROUTES` using express router  
+     |    |--- error.ts             # Handle and export routes that are not found  
+     |--- /types  
+     |    |--- index.ts             # Handles all type related to the todo data  
+     |--- /utils                    # Handles reusable functions  
+     |--- app.ts                    # Main server entrance  
+     |--- package.json              # All project dependencies related to the backend  
+     |--- tsconfig.json  
+     |--- README.md
 
 <h2 id="started"> Getting Started </h2>
 
@@ -59,7 +58,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 <h3> Sample Request/Response per Route </h3>
 
-**REQUEST**
+**REQUEST**  
 `GET http://localhost:4500`
 
 **RESPONSE**
@@ -74,7 +73,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ---
 
-**REQUEST**
+**REQUEST**  
 `GET http://localhost:4500/todos`
 
 **RESPONSE**
@@ -107,7 +106,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ---
 
-**REQUEST**
+**REQUEST**  
 `GET http://localhost:4500/todos/1`
 
 **RESPONSE**
@@ -130,7 +129,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ---
 
-**REQUEST**
+**REQUEST**  
 `POST http://localhost:4500/todos`
 
 ```json
@@ -158,7 +157,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ---
 
-**REQUEST**
+**REQUEST**  
 `PATCH http://localhost:4000/todos/1`
 
 ```json
@@ -193,7 +192,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ---
 
-**REQUEST**
+**REQUEST**  
 `DELETE http://localhost:4000/todos/1`
 
 **RESPONSE**
