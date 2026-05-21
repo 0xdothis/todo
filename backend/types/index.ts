@@ -1,38 +1,29 @@
-import type { Request } from 'express';
-
 export type TodoItem = {
-  id?: string;
+  readonly id: string;
   title: string;
   description: string;
   completed: boolean;
 };
 
-export type CreateTodoItem = {
+export type CreateTodoBody = {
   title: string;
   description: string;
-  completed: boolean;
 };
 
-export type TodoSuccess<T> = {
-  status: string;
-  statusCode: number;
+export type UpdateTodoBody = Partial<CreateTodoBody> & {
+  completed?: boolean;
+};
+
+export interface ApiSuccess<T> {
+  success: true;
   data: T;
-};
+}
 
-export type TodoError = {
-  status: string;
-  statusCode: number;
-  error: {
-    message: string;
-  };
-};
+export interface ApiError {
+  success: false;
+  error: string;
+}
 
-export type TodoResponse<T> = TodoSuccess<T> | TodoError;
+export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
-export type GetTodoParams = { todoId: string };
-
-export type CreateTodoItemRequest = Request<
-  GetTodoParams, // params
-  object, // response
-  CreateTodoItem // request body
->;
+export type TodoParams = { todoId: string };
