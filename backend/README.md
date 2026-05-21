@@ -68,8 +68,7 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "status": "OK",
-  "statusCode": 200,
+  "success": true,
   "message": "Todo list API"
 }
 ```
@@ -83,27 +82,27 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "status": "OK",
-  "statusCode": 200,
-  "data": {
-    "todos": [
-      {
-        "id": 1,
-        "title": "Cook beans",
-        "description": "I cook my own beans"
-      },
-      {
-        "id": 2,
-        "title": "Walk the dog",
-        "description": "Walk the dog around the neighborhood"
-      },
-      {
-        "id": 3,
-        "title": "Clean the house",
-        "description": "make sure the mop every 48hours"
-      }
-    ]
-  }
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Cook beans",
+      "description": "I cook my own beans",
+      "completed": false
+    },
+    {
+      "id": 2,
+      "title": "Walk the dog",
+      "description": "Walk the dog around the neighborhood",
+      "completed": false
+    },
+    {
+      "id": 3,
+      "title": "Clean the house",
+      "description": "make sure the mop every 48hours",
+      "completed": false
+    }
+  ]
 }
 ```
 
@@ -116,16 +115,12 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "status": "OK",
-  "statusCode": 200,
+  "success": true,
   "data": {
-    "todos": [
-      {
-        "id": 1,
-        "title": "Cook beans",
-        "description": "I cook my own beans"
-      }
-    ]
+    "id": 1,
+    "title": "Cook beans",
+    "description": "I cook my own beans",
+    "completed": true
   }
 }
 ```
@@ -137,7 +132,6 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "id": 4,
   "title": "Excersice",
   "description": "Go to the gym by 4pm"
 }
@@ -147,13 +141,12 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "status": "OK",
-  "statusCode": 200,
-  "message": "Todo created succesfully",
+  "success": true,
   "data": {
     "id": 4,
     "title": "Excersice",
-    "description": "Go to the gym by 4pm"
+    "description": "Go to the gym by 4pm",
+    "completed": false
   }
 }
 ```
@@ -165,9 +158,8 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "id": 1, // Originally won't be sending the ID along but currently we are not saving to any database
   "title": "COOK BEANS",
-  "description": "This info was editted"
+  "completed": true
 }
 ```
 
@@ -175,20 +167,12 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 ```json
 {
-  "status": "OK",
-  "statusCode": 200,
-  "message": "Todo updated succesfully",
+  "success": true,
   "data": {
-    "status": "OK",
-    "statusCode": 200,
-    "message": "Todo Created Succefully",
-    "data": [
-      {
-        "id": 1,
-        "title": "COOK BEANS",
-        "description": "This info was editted"
-      }
-    ]
+    "id": 1,
+    "title": "COOK BEANS",
+    "description": "This info was editted",
+    "completed": true
   }
 }
 ```
@@ -201,9 +185,5 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 **RESPONSE**
 
 ```json
-{
-  "status": "OK",
-  "statusCode": 200,
-  "message": "Todo deleted succesfully"
-}
+return a 204 status
 ```
