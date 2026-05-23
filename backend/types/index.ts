@@ -1,11 +1,7 @@
-import { RowDataPacket } from 'mysql2';
+import { InferAttributes } from 'sequelize';
+import { Todo } from '../models/todo';
 
-export interface TodoItem extends RowDataPacket {
-  readonly id: string;
-  title: string;
-  description: string;
-  completed: boolean;
-}
+export type TodoItem = Omit<InferAttributes<Todo>, 'created_at' | 'updated_at'>;
 
 export type CreateTodoBody = {
   title: string;

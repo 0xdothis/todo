@@ -1,4 +1,41 @@
-import { ResultSetHeader } from 'mysql2';
+import {
+  DataTypes,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+} from 'sequelize';
+import { sequelize } from '../utils/database';
+
+export class Todo extends Model<InferAttributes<Todo>, InferCreationAttributes<Todo>> {
+  declare id: CreationOptional<number>;
+  declare title: string;
+  declare description: string;
+  declare completed: CreationOptional<boolean>;
+}
+
+Todo.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      allowNull: false,
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    description: DataTypes.TEXT,
+    completed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+  },
+  { sequelize, tableName: 'todos' },
+);
+
+/** import { ResultSetHeader } from 'mysql2';
 import type { TodoItem, CreateTodoBody, UpdateTodoBody } from '../types';
 import { pool as db } from '../utils/database';
 
@@ -89,3 +126,5 @@ export class Todo {
     return updatedTodo;
   }
 }
+
+*/

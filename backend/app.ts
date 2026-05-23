@@ -2,6 +2,7 @@ import express from 'express';
 
 import { router as todoRoute } from './routes/todoRoute';
 import { get404 } from './controllers/error';
+import { Todo } from './models/todo';
 
 const app = express();
 
@@ -18,4 +19,10 @@ app.use(todoRoute);
 
 app.use(get404);
 
-app.listen(4500);
+Todo.sync()
+  .then(() => {
+    app.listen(4500);
+  })
+  .catch((err) => {
+    console.error(err);
+  });

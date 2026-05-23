@@ -8,6 +8,8 @@ import type {
 } from '../types/index';
 import { Todo } from '../models/todo';
 
+const TODO_ATTRIBUTES: string[] = ['id', 'title', 'description', 'completed'];
+
 export const getIndex = (_: Request, res: Response) => {
   return res.status(200).json({
     status: 'OK',
@@ -19,7 +21,14 @@ export const getIndex = (_: Request, res: Response) => {
 export const getTodo = async (req: Request<TodoParams>, res: Response<ApiResponse<TodoItem>>) => {
   const todoId = req.params.todoId;
 
-  const todo = await Todo.findById(todoId);
+  if (!todoId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Todo id id required',
+    });
+  }
+
+  const todo = await Todo.findByPk(todoId, { attributes: TODO_ATTRIBUTES });
 
   if (!todo) {
     return res.status(404).json({
@@ -30,12 +39,12 @@ export const getTodo = async (req: Request<TodoParams>, res: Response<ApiRespons
 
   return res.status(200).json({
     success: true,
-    data: todo,
+    data: todo.toJSON<TodoItem>(),
   });
 };
 
 export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>>) => {
-  const todos = await Todo.fetchTodos();
+  const todos = await Todo.findAll({ attributes: TODO_ATTRIBUTES });
 
   if (!todos) {
     return res.status(404).json({
@@ -54,7 +63,14 @@ export const postTodo = async (
   req: Request<never, never, CreateTodoBody>,
   res: Response<ApiResponse<TodoItem>>,
 ) => {
-  const todo = new Todo(req.body);
+  const { title, description }: CreateTodoBody = req.body;
+
+  const todo = (
+    await Todo.create({
+      title,
+      description,
+    })
+  ).toJSON<Todo>();
 
   if (!todo) {
     return res.status(400).json({
@@ -63,11 +79,9 @@ export const postTodo = async (
     });
   }
 
-  const data = await todo.save(todo);
-
   return res.status(201).json({
     success: true,
-    data,
+    data: todo,
   });
 };
 
@@ -81,7 +95,7 @@ export const deleteTodo = async (req: Request<TodoParams>, res: Response<ApiResp
     });
   }
 
-  const deleted = await Todo.deleteById(todoId);
+  const deleted = await Todo.destroy({ where: { id: todoId } });
 
   if (!deleted) {
     return res.status(404).json({ success: false, error: 'Todo not found' });
@@ -103,19 +117,26 @@ export const patchUpdateTodo = async (
     });
   }
 
-  const updatedTodo = await Todo.updateTodo(todoId, req.body);
+  const [affectedRow] = await Todo.update(req.body, { where: { id: todoId } });
 
-  console.log(updatedTodo);
-
-  if (!updatedTodo) {
+  if (affectedRow < 1) {
     return res.status(404).json({
       success: false,
       error: 'Todo not found',
     });
   }
 
+  const todo = await Todo.findByPk(todoId, { attributes: TODO_ATTRIBUTES });
+
+  if (!todo) {
+    return res.status(400).json({
+      success: false,
+      error: 'Something went wrong',
+    });
+  }
+
   return res.status(200).json({
     success: true,
-    data: updatedTodo,
+    data: todo.toJSON<TodoItem>(),
   });
 };

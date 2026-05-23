@@ -12,12 +12,18 @@
 - [NodeJS][1] V18 or later        # Javascript runtime environment
 - [Git][2]                        # Distributed version control system
 - [Express][3]                    # Web Framework Library for routes
-- [Postman][4]                    # Testing of API endpoints
+- [Postman][4]                    # Testing of API Endpoints
+
+<h2>Database</h2>
+- Database: [MySql][5]
+- ORM: [Sequelize][6]
 
 [1]: https://nodejs.org
 [2]: https://git-scm.com/
 [3]: https://expressjs.com
 [4]: https://postman.com
+[5]: https://www.mysql.com/
+[6]: https://sequelize.org/
 
 <h2> Respository Structure </h2>
 
@@ -47,8 +53,8 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 
 <h2 id="routes"> API Endpoints 📍 </h2>
 
-<p>The API consist of `GET`, `PATCH`, `DELETE`, and `POST` routes this routes allows users to test the todo API.
-  The server runs on `http:\\localhost:4500` which is also considered the base route.</p>
+The API consist of `GET`, `PATCH`, `DELETE`, and `POST` routes this routes allows users to test the todo API.
+The server runs on `http:\\localhost:4500` which is also considered the base route.
 
 | Route                             | Description                                                |
 | --------------------------------- | ---------------------------------------------------------- |
@@ -58,6 +64,131 @@ You can visit the root [README.md](/README.md) to read about the project and ins
 | <kbd> POST /todos </kbd>          | send the `req.body` to create a new todo item              |
 | <kbd> PATCH /todos/todoId </kbd>  | update the todo fields that matches the id in `req.params` |
 | <kbd> DELETE /todos/todoId </kbd> | delete a todo that matches the id in the `req.params`      |
+
+### Database Setup Guide
+
+You need to install `mysql` for `Windows`, `Mac` or `Linux`.
+
+#### Windows
+
+##### Installation
+
+1. Download the MySQL Installer from the [official MySQL website](https://dev.mysql.com/downloads/installer/)
+2. Run the installer and select **Developer Default** or **Server Only**
+3. Follow the setup wizard — when prompted, set a **root password** and keep it safe
+4. Complete the installation and start the MySQL Server
+
+##### Start / Stop MySQL
+
+```bash
+# Start
+net start mysql
+
+# Stop
+net stop mysql
+```
+
+##### Connect to MySQL
+
+```bash
+mysql -u root -p
+```
+
+---
+
+#### macOS
+
+##### Installation (Homebrew)
+
+```bash
+# Install Homebrew if you don't have it
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install MySQL
+brew install mysql
+```
+
+##### Start / Stop MySQL
+
+```bash
+# Start
+brew services start mysql
+
+# Stop
+brew services stop mysql
+```
+
+##### Secure the installation
+
+```bash
+mysql_secure_installation
+```
+
+This prompts you to set a root password and remove test databases.
+
+##### Connect to MySQL
+
+```bash
+mysql -u root -p
+```
+
+---
+
+#### Linux (Ubuntu / Debian)
+
+##### Installation
+
+```bash
+sudo apt update
+sudo apt install mysql-server -y
+```
+
+##### Start / Stop MySQL
+
+```bash
+# Start
+sudo systemctl start mysql
+
+# Stop
+sudo systemctl stop mysql
+
+# Enable on startup
+sudo systemctl enable mysql
+```
+
+##### Secure the installation
+
+```bash
+sudo mysql_secure_installation
+```
+
+##### Connect to MySQL
+
+```bash
+sudo mysql -u root -p
+```
+
+---
+
+#### Creating a Database and User
+
+Once connected, run the following SQL commands:
+
+```sql
+-- Create a database
+CREATE DATABASE my_database;
+
+-- Create a user
+CREATE USER 'my_user'@'localhost' IDENTIFIED BY 'my_password';
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON my_database.* TO 'my_user'@'localhost';
+
+-- Apply changes
+FLUSH PRIVILEGES;
+```
+
+---
 
 <h3> Sample Request/Response per Route </h3>
 
