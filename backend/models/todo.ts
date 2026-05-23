@@ -1,62 +1,90 @@
+import { ResultSetHeader } from 'mysql2';
 import type { TodoItem, CreateTodoBody, UpdateTodoBody } from '../types';
-
-const todos: TodoItem[] = [];
+import { pool as db } from '../utils/database';
 
 export class Todo {
-  readonly id: string;
   title: string;
   description: string;
-  completed: boolean;
 
   constructor(data: CreateTodoBody) {
-    this.id = crypto.randomUUID();
     this.title = data.title;
     this.description = data.description;
-    this.completed = false;
   }
 
-  async save(todo: TodoItem): Promise<TodoItem> {
-    todos.push(todo);
+  async save(todo: CreateTodoBody): Promise<TodoItem> {
+    const [result] = await db.execute<ResultSetHeader>(
+      'INSERT INTO todo (title, description) VALUES (?, ?)',
+      [todo.title, todo.description],
+    );
 
-    return todo;
+    const [rows] = await db.execute<TodoItem[]>(
+      'SELECT id, title, description, completed FROM todo_db.todo WHERE id = ?',
+      [result.insertId],
+    );
+
+    if (!rows[0]) {
+      throw new Error('Todo not inserted');
+    }
+
+    const data: TodoItem = rows[0];
+
+    return data;
   }
 
   static async fetchTodos(): Promise<TodoItem[]> {
+    const [todos] = await db.execute<TodoItem[]>(
+      'SELECT id, title, description, completed FROM todo_db.todo',
+    );
+
     return todos;
   }
 
   static async findById(id: string): Promise<TodoItem | null> {
-    const todo = todos.find((t) => t.id === id);
+    const [rows] = await db.execute<TodoItem[]>(
+      'SELECT id, title, description, completed FROM todo_db.todo WHERE id = ?',
+      [id],
+    );
 
-    return todo || null;
-  }
-
-  static async deleteById(id: string): Promise<TodoItem | null> {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
-
-    if (todoIndex === -1) {
+    if (!rows[0]) {
       return null;
     }
 
-    const deletedTodo = todos[todoIndex]!;
+    const todo: TodoItem = rows[0];
 
-    todos.splice(todoIndex, 1);
+    return todo;
+  }
 
-    return deletedTodo;
+  static async deleteById(id: string): Promise<boolean> {
+    const [result] = await db.execute<ResultSetHeader>('DELETE FROM todo_db.todo WHERE id = ?', [
+      id,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return false;
+    }
+
+    return result.affectedRows > 0;
   }
 
   static async updateTodo(id: string, updateData: UpdateTodoBody): Promise<TodoItem | null> {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+    const [result] = await db.execute<ResultSetHeader>({
+      sql: 'UPDATE todo SET title = ?, description = ?, completed = ? WHERE id = ?',
+      values: [updateData.title, updateData.description, updateData.completed, id],
+    });
 
-    if (todoIndex === -1) {
-      return null;
+    const [rows] = await db.execute<TodoItem[]>(
+      'SELECT id, title, description, completed FROM todo_db.todo WHERE id = ?',
+      [id],
+    );
+
+    console.log('result', result, 2);
+    console.log('rows', rows[0], 2);
+
+    if (!rows[0]) {
+      throw new Error('Todo not found');
     }
 
-    // const safeUpdate = Object.fromEntries(Object.entries(updateData).filter(([_, value]) => value !== undefined)) as Partial<TodoItem>;
-
-    todos[todoIndex] = { ...todos[todoIndex], ...updateData } as TodoItem;
-
-    const updatedTodo = todos[todoIndex];
+    const updatedTodo: TodoItem = rows[0];
 
     return updatedTodo;
   }

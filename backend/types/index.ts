@@ -1,9 +1,11 @@
-export type TodoItem = {
+import { RowDataPacket } from 'mysql2';
+
+export interface TodoItem extends RowDataPacket {
   readonly id: string;
   title: string;
   description: string;
   completed: boolean;
-};
+}
 
 export type CreateTodoBody = {
   title: string;

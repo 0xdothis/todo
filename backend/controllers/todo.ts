@@ -47,34 +47,6 @@ export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>
   return res.status(200).json({
     success: true,
     data: todos,
-    /** [
-        {
-          "id": 1,
-          "title": "Cook beans",
-          "description": "I cook my own beans"
-        },
-        {
-          "id": 2,
-          "title": "Walk the dog",
-          "description": "Walk the dog around the neighborhood"
-        },
-        {
-          "id": 3,
-          "title": "Clean the house",
-          "description": "make sure the mop every 48hours"
-        },
-        {
-          "id": 4,
-          "title": "Excersice",
-          "description": "Go to the gym by 4pm"
-        },
-        {
-          "id": 5,
-          "title": "Webwinar confrence",
-          "description": "Attend the webwinar confrence"
-        },
-      ],
-      */
   });
 };
 
@@ -85,7 +57,7 @@ export const postTodo = async (
   const todo = new Todo(req.body);
 
   if (!todo) {
-    return res.status(503).json({
+    return res.status(400).json({
       success: false,
       error: 'Something went wrong',
     });
@@ -99,26 +71,23 @@ export const postTodo = async (
   });
 };
 
-export const deleteTodo = async (
-  req: Request<TodoParams>,
-  res: Response<ApiResponse<TodoItem>>,
-) => {
+export const deleteTodo = async (req: Request<TodoParams>, res: Response<ApiResponse<null>>) => {
   const todoId = req.params.todoId;
 
   if (!todoId) {
-    return res.status(404).json({
+    return res.status(400).json({
       success: false,
-      error: 'Todo not found',
+      error: 'Todo id is required',
     });
   }
 
-  const todo = await Todo.deleteById(todoId);
+  const deleted = await Todo.deleteById(todoId);
 
-  if (!todo) {
-    throw new Error('Todo not found');
+  if (!deleted) {
+    return res.status(404).json({ success: false, error: 'Todo not found' });
   }
 
-  return res.sendStatus(204);
+  return res.status(204).send();
 };
 
 export const patchUpdateTodo = async (
@@ -127,21 +96,16 @@ export const patchUpdateTodo = async (
 ) => {
   const todoId = req.params.todoId;
 
-  // const updateData = req.body;
-  /**
-    if(!["title", "description"].every(key => key in updateData)) {
+  if (!todoId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Todo id is required',
+    });
+  }
 
-      return res.status(400).json({
-      status: 'Bad Request',
-      statusCode: 400,
-      error: {
-        message: 'title or description cannot be empty'
-      }
-
-    })
-    }
-   */
   const updatedTodo = await Todo.updateTodo(todoId, req.body);
+
+  console.log(updatedTodo);
 
   if (!updatedTodo) {
     return res.status(404).json({
