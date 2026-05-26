@@ -1,7 +1,10 @@
 import { InferAttributes } from 'sequelize';
 import { Todo } from '../models/todo';
+import { User } from '../models/user';
 
 export type TodoItem = Omit<InferAttributes<Todo>, 'created_at' | 'updated_at'>;
+
+export type UserType = Omit<InferAttributes<User>, 'created_at' | 'updated_at'>;
 
 export type CreateTodoBody = {
   title: string;

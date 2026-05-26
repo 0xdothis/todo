@@ -5,7 +5,7 @@ import type {
   TodoParams,
   CreateTodoBody,
   UpdateTodoBody,
-} from '../types/index';
+} from '../@types/index';
 import { Todo } from '../models/todo';
 
 const TODO_ATTRIBUTES: string[] = ['id', 'title', 'description', 'completed'];
@@ -43,8 +43,8 @@ export const getTodo = async (req: Request<TodoParams>, res: Response<ApiRespons
   });
 };
 
-export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>>) => {
-  const todos = await Todo.findAll({ attributes: TODO_ATTRIBUTES });
+export const getTodos = async (req: Request, res: Response<ApiResponse<TodoItem[]>>) => {
+  const todos = await req.user.getTodos({ attributes: TODO_ATTRIBUTES });
 
   if (!todos) {
     return res.status(404).json({
@@ -66,7 +66,7 @@ export const postTodo = async (
   const { title, description }: CreateTodoBody = req.body;
 
   const todo = (
-    await Todo.create({
+    await req.user.createTodo({
       title,
       description,
     })
@@ -117,18 +117,13 @@ export const patchUpdateTodo = async (
     });
   }
 
-  const [affectedRow] = await Todo.update(req.body, { where: { id: todoId } });
+  const [todo] = await req.user.getTodos({ where: { id: todoId } });
 
-  if (affectedRow < 1) {
-    return res.status(404).json({
-      success: false,
-      error: 'Todo not found',
-    });
-  }
+  await todo.update(req.body);
 
-  const todo = await Todo.findByPk(todoId, { attributes: TODO_ATTRIBUTES });
+  const updatedTodo = await Todo.findByPk(todoId, { attributes: TODO_ATTRIBUTES });
 
-  if (!todo) {
+  if (!updatedTodo) {
     return res.status(400).json({
       success: false,
       error: 'Something went wrong',
@@ -137,6 +132,6 @@ export const patchUpdateTodo = async (
 
   return res.status(200).json({
     success: true,
-    data: todo.toJSON<TodoItem>(),
+    data: updatedTodo.toJSON<TodoItem>(),
   });
 };

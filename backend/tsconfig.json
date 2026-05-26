@@ -15,8 +15,11 @@
     "esModuleInterop": true,
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
-    "declaration": true
+    "declaration": true,
+    "typeRoots": ["./node_modules/@types", "./@types"]
   },
-  "include": [ "**/*.ts" ]
+  "include": [ "**/*.ts"],
+  "ts-node": {
+    "files": true
+  }
 }
-
