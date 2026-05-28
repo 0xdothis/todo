@@ -23,7 +23,7 @@ This is a simple todo application the main focus of this repository is to learn 
 
 ### Database
 
-- Database: .....
+- Database: MongoDB
 - ODM: .....
 
 ## 🚀 Getting Started

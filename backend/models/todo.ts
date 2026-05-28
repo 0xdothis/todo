@@ -1,62 +1,73 @@
-import type { TodoItem, CreateTodoBody, UpdateTodoBody } from '../types';
-
-const todos: TodoItem[] = [];
+import { ObjectId, InsertOneResult } from 'mongodb';
+import type { TodoItem, CreateTodoBody, UpdateTodoBody } from '../@types';
+import { getDb } from '../utils/database';
 
 export class Todo {
-  readonly id: string;
   title: string;
   description: string;
+  userId: ObjectId;
   completed: boolean;
 
   constructor(data: CreateTodoBody) {
-    this.id = crypto.randomUUID();
     this.title = data.title;
     this.description = data.description;
+    this.userId = data.userId;
     this.completed = false;
   }
 
   async save(todo: TodoItem): Promise<TodoItem> {
-    todos.push(todo);
+    const db = getDb();
 
-    return todo;
+    const result: InsertOneResult<TodoItem> = await db.collection('todos').insertOne(todo);
+
+    const todoItem = { _id: result.insertedId, ...todo };
+
+    console.log(todoItem);
+
+    return todoItem;
   }
 
   static async fetchTodos(): Promise<TodoItem[]> {
+    const db = getDb();
+
+    const todos: TodoItem[] = await db.collection<TodoItem>('todos').find({}).toArray();
+    console.log(todos);
+
     return todos;
   }
 
   static async findById(id: string): Promise<TodoItem | null> {
-    const todo = todos.find((t) => t.id === id);
+    const db = getDb();
 
-    return todo || null;
+    const todo = await db.collection<TodoItem>('todos').findOne({ _id: new ObjectId(id) });
+
+    if (!todo) return null;
+
+    return todo;
   }
 
-  static async deleteById(id: string): Promise<TodoItem | null> {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+  static async deleteById(id: string): Promise<boolean | null> {
+    const db = getDb();
 
-    if (todoIndex === -1) {
-      return null;
-    }
+    const { deletedCount } = await db
+      .collection<TodoItem>('todos')
+      .deleteOne({ _id: new ObjectId(id) });
 
-    const deletedTodo = todos[todoIndex]!;
+    if (deletedCount < 1) return null;
 
-    todos.splice(todoIndex, 1);
-
-    return deletedTodo;
+    return true;
   }
 
   static async updateTodo(id: string, updateData: UpdateTodoBody): Promise<TodoItem | null> {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+    const db = getDb();
 
-    if (todoIndex === -1) {
-      return null;
-    }
+    const { matchedCount } = await db
+      .collection<TodoItem>('todos')
+      .updateOne({ _id: new ObjectId(id) }, { $set: { ...updateData } });
 
-    // const safeUpdate = Object.fromEntries(Object.entries(updateData).filter(([_, value]) => value !== undefined)) as Partial<TodoItem>;
+    if (matchedCount < 1) return null;
 
-    todos[todoIndex] = { ...todos[todoIndex], ...updateData } as TodoItem;
-
-    const updatedTodo = todos[todoIndex];
+    const updatedTodo = await db.collection<TodoItem>('todos').findOne({ _id: new ObjectId(id) });
 
     return updatedTodo;
   }

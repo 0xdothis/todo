@@ -1,13 +1,22 @@
+import { ObjectId } from 'mongodb';
+
 export type TodoItem = {
-  readonly id: string;
+  readonly _id?: ObjectId;
   title: string;
   description: string;
   completed: boolean;
 };
 
+export type UserType = {
+  readonly _id?: ObjectId;
+  name: string;
+  email: string;
+};
+
 export type CreateTodoBody = {
   title: string;
   description: string;
+  userId: ObjectId;
 };
 
 export type UpdateTodoBody = Partial<CreateTodoBody> & {

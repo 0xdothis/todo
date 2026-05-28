@@ -3,6 +3,7 @@
 <p align="center">
   <a href="#tech">Technologies</a> |
   <a href="#started">Getting Started</a> |
+  <a href="#database"> Database Installation</a> |
   <a href="#routes">API Endpoints</a> 
 </p>
 
@@ -43,7 +44,231 @@
 
 <h2 id="started"> Getting Started </h2>
 
-You can visit the root [README.md](/README.md) to read about the project and installation procedures
+You can visit the root [README.md](/README.md) to read about the project and installation procedures.
+
+<h2 id="database"> Database Installation </h2>
+
+### MongoDB Installation & Setup Guide
+
+A step-by-step guide to installing MongoDB and MongoDB Compass on Windows, macOS, and Linux.
+
+### Windows
+
+#### 1. Install MongoDB
+
+1. Go to the [MongoDB Download Center](https://www.mongodb.com/try/download/community)
+2. Select:
+   - **Version**: Latest stable
+   - **Platform**: Windows
+   - **Package**: MSI
+3. Run the downloaded `.msi` installer
+4. Follow the setup wizard:
+   - Choose **Complete** installation
+   - Check **Install MongoDB as a Service** (recommended)
+   - Leave the service name as `MongoDB`
+   - Note the data directory (default: `C:\Program Files\MongoDB\Server\<version>\data`)
+5. **Uncheck** "Install MongoDB Compass" — we will install it separately
+
+#### 2. Add MongoDB to PATH
+
+1. Search for **Environment Variables** in the Start menu
+2. Click **Edit the system environment variables**
+3. Under **System Variables**, find and select **Path**, then click **Edit**
+4. Click **New** and add:
+   ```
+   C:\Program Files\MongoDB\Server\<version>\bin
+   ```
+   Replace `<version>` with your installed version (e.g. `7.0`)
+5. Click **OK** to save
+
+#### 3. Start MongoDB Service
+
+MongoDB runs as a Windows service automatically after installation. To manually start/stop it:
+
+```powershell
+# Start
+net start MongoDB
+
+# Stop
+net stop MongoDB
+```
+
+Or manage it via **Services** (`services.msc`) in the Start menu.
+
+#### 4. Install MongoDB Compass
+
+1. Go to the [MongoDB Compass Download page](https://www.mongodb.com/try/download/compass)
+2. Select **Windows** and download the `.exe` installer
+3. Run the installer and follow the prompts
+
+---
+
+### macOS
+
+#### 1. Install MongoDB via Homebrew (Recommended)
+
+If you don't have Homebrew installed, install it first:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then install MongoDB:
+
+```bash
+# Add the MongoDB tap
+brew tap mongodb/brew
+
+# Install MongoDB Community Edition
+brew install mongodb-community
+```
+
+#### 2. Start MongoDB
+
+```bash
+# Start MongoDB as a background service
+brew services start mongodb-community
+
+# Stop MongoDB
+brew services stop mongodb-community
+
+# Restart MongoDB
+brew services restart mongodb-community
+```
+
+To run MongoDB manually without it starting on login:
+
+```bash
+mongod --config /usr/local/etc/mongod.conf --fork
+```
+
+#### 3. Install MongoDB Compass
+
+```bash
+brew install --cask mongodb-compass
+```
+
+Or download the `.dmg` manually from the [MongoDB Compass Download page](https://www.mongodb.com/try/download/compass), open it, and drag MongoDB Compass to your **Applications** folder.
+
+---
+
+### Linux
+
+Instructions below are for **Ubuntu/Debian**. For other distributions, refer to the [official docs](https://www.mongodb.com/docs/manual/administration/install-on-linux/).
+
+#### 1. Install MongoDB
+
+```bash
+# Import the MongoDB public GPG key
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+  sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+# Create the list file for your Ubuntu version
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] \
+  https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/7.0 multiverse" | \
+  sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+# Update package list and install
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+```
+
+#### 2. Start MongoDB
+
+```bash
+# Start the MongoDB service
+sudo systemctl start mongod
+
+# Enable MongoDB to start on boot
+sudo systemctl enable mongod
+
+# Check status
+sudo systemctl status mongod
+
+# Stop MongoDB
+sudo systemctl stop mongod
+
+# Restart MongoDB
+sudo systemctl restart mongod
+```
+
+If you get a `Failed to start mongod.service` error, run:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl start mongod
+```
+
+#### 3. Install MongoDB Compass
+
+```bash
+# Download the .deb package
+wget https://downloads.mongodb.com/compass/mongodb-compass_1.42.2_amd64.deb
+
+# Install it
+sudo dpkg -i mongodb-compass_1.42.2_amd64.deb
+```
+
+> **Note:** Check the [Compass releases page](https://www.mongodb.com/try/download/compass) for the latest version number and replace `1.42.2` accordingly.
+
+Launch Compass from your applications menu or by running:
+
+```bash
+mongodb-compass
+```
+
+---
+
+### Connecting with MongoDB Compass
+
+1. Open **MongoDB Compass**
+2. You will see a **New Connection** screen
+3. For a local connection, use the default connection string:
+   ```
+   mongodb://localhost:27017
+   ```
+4. Click **Connect**
+5. You should see your local MongoDB instance with its default databases (`admin`, `config`, `local`)
+
+#### Creating a Database
+
+1. Click **Create Database** in the left sidebar
+2. Enter a **Database Name** (e.g. `todo-app`)
+3. Enter an initial **Collection Name** (e.g. `users`)
+4. Click **Create Database**
+
+#### Verifying Your Setup
+
+Run the following in your terminal to confirm MongoDB is running correctly:
+
+```bash
+# Open the MongoDB shell
+mongosh
+
+# Inside the shell, check the connection
+db.runCommand({ ping: 1 })
+# Expected output: { ok: 1 }
+
+# List all databases
+show dbs
+
+# Exit the shell
+exit
+```
+
+If `mongosh` is not found, install it separately from the [MongoDB Shell download page](https://www.mongodb.com/try/download/shell).
+
+---
+
+## Troubleshooting
+
+| Issue                              | Fix                                                  |
+| ---------------------------------- | ---------------------------------------------------- |
+| `mongod` not found                 | Add MongoDB `bin` directory to your PATH             |
+| Port 27017 already in use          | Run `sudo lsof -i :27017` and kill the process       |
+| Permission denied on Linux         | Run `sudo chown -R mongodb:mongodb /var/lib/mongodb` |
+| Compass won't connect              | Make sure the `mongod` service is running            |
+| `brew: command not found` on macOS | Install Homebrew first (see macOS section)           |
 
 <h2 id="routes"> API Endpoints 📍 </h2>
 

@@ -5,8 +5,9 @@ import type {
   TodoParams,
   CreateTodoBody,
   UpdateTodoBody,
-} from '../types/index';
+} from '../@types/index';
 import { Todo } from '../models/todo';
+import { ObjectId } from 'mongodb';
 
 export const getIndex = (_: Request, res: Response) => {
   return res.status(200).json({
@@ -82,7 +83,9 @@ export const postTodo = async (
   req: Request<never, never, CreateTodoBody>,
   res: Response<ApiResponse<TodoItem>>,
 ) => {
-  const todo = new Todo(req.body);
+  const userId = new ObjectId(req.user._id);
+
+  const todo = new Todo({ ...req.body, userId });
 
   if (!todo) {
     return res.status(503).json({
@@ -115,7 +118,10 @@ export const deleteTodo = async (
   const todo = await Todo.deleteById(todoId);
 
   if (!todo) {
-    throw new Error('Todo not found');
+    return res.status(404).json({
+      success: false,
+      error: 'Todo not found',
+    });
   }
 
   return res.sendStatus(204);
@@ -140,7 +146,8 @@ export const patchUpdateTodo = async (
 
     })
     }
-   */
+  */
+
   const updatedTodo = await Todo.updateTodo(todoId, req.body);
 
   if (!updatedTodo) {
