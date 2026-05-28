@@ -1,8 +1,6 @@
 import { Db, MongoClient } from 'mongodb';
 
-const mongoClient = new MongoClient(
-  'mongodb+srv://todo:todo@cluster0.qpiuxc5.mongodb.net/todo_db?appName=Cluster0',
-);
+const mongoClient = new MongoClient('INPUT YOUR CONNECTION URL HERE');
 
 let _db: Db;
 
