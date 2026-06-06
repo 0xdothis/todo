@@ -24,7 +24,7 @@ This is a simple todo application the main focus of this repository is to learn 
 ### Database
 
 - Database: MongoDB
-- ODM: .....
+- ODM: Mongoose
 
 ## 🚀 Getting Started
 

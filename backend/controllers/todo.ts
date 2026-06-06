@@ -6,8 +6,7 @@ import type {
   CreateTodoBody,
   UpdateTodoBody,
 } from '../@types/index';
-import { Todo } from '../models/todo';
-import { ObjectId } from 'mongodb';
+import Todo from '../models/todo';
 
 export const getIndex = (_: Request, res: Response) => {
   return res.status(200).json({
@@ -36,7 +35,7 @@ export const getTodo = async (req: Request<TodoParams>, res: Response<ApiRespons
 };
 
 export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>>) => {
-  const todos = await Todo.fetchTodos();
+  const todos = await Todo.find();
 
   if (!todos) {
     return res.status(404).json({
@@ -83,7 +82,7 @@ export const postTodo = async (
   req: Request<never, never, CreateTodoBody>,
   res: Response<ApiResponse<TodoItem>>,
 ) => {
-  const userId = new ObjectId(req.user._id);
+  const userId = req.user._id;
 
   const todo = new Todo({ ...req.body, userId });
 
@@ -94,7 +93,7 @@ export const postTodo = async (
     });
   }
 
-  const data = await todo.save(todo);
+  const data = await todo.save();
 
   return res.status(201).json({
     success: true,
@@ -115,7 +114,7 @@ export const deleteTodo = async (
     });
   }
 
-  const todo = await Todo.deleteById(todoId);
+  const todo = await Todo.findByIdAndDelete(todoId);
 
   if (!todo) {
     return res.status(404).json({
@@ -148,17 +147,19 @@ export const patchUpdateTodo = async (
     }
   */
 
-  const updatedTodo = await Todo.updateTodo(todoId, req.body);
+  const { modifiedCount } = await Todo.updateOne({ _id: todoId }, { $set: req.body });
 
-  if (!updatedTodo) {
+  if (modifiedCount < 1) {
     return res.status(404).json({
       success: false,
       error: 'Todo not found',
     });
   }
 
+  const updatedTodo = await Todo.findById(todoId);
+
   return res.status(200).json({
     success: true,
-    data: updatedTodo,
+    data: updatedTodo!,
   });
 };
