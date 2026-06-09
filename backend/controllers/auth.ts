@@ -1,9 +1,19 @@
 import type { Request, Response } from 'express';
 import type { UserType, SignupBody, ApiResponse, AuthSuccess } from '../@types';
 import bcrypt from 'bcryptjs';
+import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
 import User from '../models/user';
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.sendgrid.net',
+  port: 587,
+  auth: {
+    user: 'apikey',
+    pass: process.env.SENDGRID_APIKEY || '',
+  },
+});
 
 export const postLogin = async (
   req: Request<never, never, UserType>,
@@ -71,7 +81,7 @@ export const postSignup = async (
   const { email, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {
-    return res.status(400).json({
+    return res.status(401).json({
       success: false,
       error: 'passwords must match',
     });
@@ -82,7 +92,7 @@ export const postSignup = async (
   if (user) {
     switch (user.email) {
       case email: {
-        return res.status(400).json({
+        return res.status(401).json({
           success: false,
           error: 'user already exist',
         });
@@ -94,7 +104,21 @@ export const postSignup = async (
 
   const newUser = new User({ email, password: hashedPassword });
 
-  await newUser.save();
+  const savedUser = await newUser.save();
+
+  if (!savedUser) {
+    return res.status(401).json({
+      success: false,
+      error: 'user registration failed',
+    });
+  }
+
+  transporter.sendMail({
+    from: 'developer.0xdothis@gmail.com',
+    to: email,
+    subject: 'Todo App Registration',
+    html: '<h2>Registration successful, kindly login',
+  });
 
   return res.status(200).json({
     success: true,
