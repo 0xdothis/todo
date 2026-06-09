@@ -1,17 +1,42 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import session from 'express-session';
+import connectMongoDB from 'connect-mongodb-session';
 
-import { router as todoRoute } from './routes/todoRoute';
+import todoRoute from './routes/todoRoute';
+import authRoute from './routes/auth';
 import { get404 } from './controllers/error';
 import User from './models/user';
 import 'dotenv/config';
 
 const app = express();
 
+const MongoDBStore = connectMongoDB(session);
+
+const store = new MongoDBStore({
+  uri: process.env.MONGODB_URI || '',
+  collection: 'sessions',
+});
+
 app.use(express.json());
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || '',
+    resave: false,
+    saveUninitialized: false,
+    store,
+  }),
+);
+
 app.use(async (req, _, next) => {
-  const user = await User.findById('6a240ac9f42e3d73565da5d0');
+  const userResponse = req.session.user;
+
+  if (!userResponse) {
+    return next();
+  }
+
+  const user = await User.findById(userResponse._id).select('-password');
 
   if (user) {
     req.user = user;
@@ -21,16 +46,13 @@ app.use(async (req, _, next) => {
 });
 
 app.use(todoRoute);
+app.use(authRoute);
 
 app.use(get404);
 
 mongoose
   .connect(process.env.MONGODB_URI!)
   .then(() => {
-    const user = new User({ name: 'daniel', email: 'daniel@test.com' });
-
-    user.save();
-
     app.listen(4500);
   })
   .catch((err) => {

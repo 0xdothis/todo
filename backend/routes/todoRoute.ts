@@ -9,16 +9,20 @@ import {
   patchUpdateTodo,
 } from '../controllers/todo';
 
-export const router: Router = express.Router();
+import isAuth from '../middleware/is-auth';
+
+const router: Router = express.Router();
 
 router.get('/', getIndex);
 
-router.get('/todos', getTodos);
+router.get('/todos', isAuth, getTodos);
 
-router.get('/todos/:todoId', getTodo);
+router.get('/todos/:todoId', isAuth, getTodo);
 
-router.post('/todos', postTodo);
+router.post('/todos', isAuth, postTodo);
 
-router.delete('/todos/:todoId', deleteTodo);
+router.delete('/todos/:todoId', isAuth, deleteTodo);
 
-router.patch('/todos/:todoId', patchUpdateTodo);
+router.patch('/todos/:todoId', isAuth, patchUpdateTodo);
+
+export default router;

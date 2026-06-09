@@ -9,8 +9,8 @@ export type TodoItem = {
 
 export type UserType = {
   readonly _id?: ObjectId;
-  name: string;
   email: string;
+  password: string;
 };
 
 export type CreateTodoBody = {
@@ -19,8 +19,19 @@ export type CreateTodoBody = {
   userId: ObjectId;
 };
 
+export type UserData = {
+  readonly _id?: string;
+  email: string;
+};
+
 export type UpdateTodoBody = Partial<CreateTodoBody> & {
   completed?: boolean;
+};
+
+export type SignupBody = {
+  email: string;
+  password: string;
+  confirmPassword: string;
 };
 
 export interface ApiSuccess<T> {
@@ -33,6 +44,11 @@ export interface ApiError {
   error: string;
 }
 
-export type ApiResponse<T> = ApiSuccess<T> | ApiError;
+export interface AuthSuccess {
+  success: true;
+  message: string;
+}
+
+export type ApiResponse<T> = ApiSuccess<T> | ApiError | AuthSuccess;
 
 export type TodoParams = { todoId: string };

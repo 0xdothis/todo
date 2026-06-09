@@ -34,8 +34,10 @@ export const getTodo = async (req: Request<TodoParams>, res: Response<ApiRespons
   });
 };
 
-export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>>) => {
+export const getTodos = async (req: Request, res: Response<ApiResponse<TodoItem[]>>) => {
   const todos = await Todo.find();
+
+  console.log(req.session);
 
   if (!todos) {
     return res.status(404).json({
