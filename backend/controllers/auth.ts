@@ -1,10 +1,12 @@
 import type { Request, Response } from 'express';
-import type { UserType, SignupBody, ApiResponse, AuthSuccess } from '../@types';
+import type { SignupBody, ApiResponse, AuthData, LoginBody } from '../@types';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 
 import User from '../models/user';
+import { ErrorHandler } from '../middleware/error';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.sendgrid.net',
@@ -16,74 +18,63 @@ const transporter = nodemailer.createTransport({
 });
 
 export const postLogin = async (
-  req: Request<never, never, UserType>,
-  res: Response<ApiResponse<AuthSuccess>>,
+  req: Request<never, never, LoginBody>,
+  res: Response<ApiResponse<AuthData>>,
 ) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.status(400).json({
+    throw new ErrorHandler({
       success: false,
-      error: 'user does not exist, kindly register',
+      message: 'user does not exist, kindly register',
+      statusCode: 404,
     });
   }
 
   const result = await bcrypt.compare(password, user.password);
 
   if (!result) {
-    return res.status(400).json({
+    throw new ErrorHandler({
       success: false,
-      error: 'Password is not valid, try again',
+      message: 'Password is not valid, try again',
+      statusCode: 422,
     });
   }
 
-  req.session.isLoggedIn = true;
-  req.session.user = { _id: user._id.toString(), email: user.email };
-
-  return req.session.save((err) => {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        error: 'Something went wrong',
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'login successfull',
+  if (!process.env.JWT_SECRET) {
+    throw new ErrorHandler({
+      success: false,
+      message: 'jwt secret is not set',
+      statusCode: 422,
     });
+  }
+
+  const token = jwt.sign({ email, name: user.name, userId: user._id }, process.env.JWT_SECRET, {
+    expiresIn: '12h',
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'login successful',
+    data: { token, userId: user._id },
   });
 };
 
-export const postLogout = async (req: Request, res: Response) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({
-        secret: false,
-        error: 'something went wrong',
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'logout successfull',
-    });
-  });
-};
+export const postLogout = async () => {};
 
 export const postSignup = async (
   req: Request<never, never, SignupBody>,
-  res: Response<ApiResponse<AuthSuccess>>,
+  res: Response<ApiResponse<never>>,
 ) => {
   const { email, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {
     return res.status(401).json({
       success: false,
-      error: 'passwords must match',
+      message: 'passwords must match',
+      statusCode: 422,
     });
   }
 
@@ -92,9 +83,10 @@ export const postSignup = async (
   if (user) {
     switch (user.email) {
       case email: {
-        return res.status(401).json({
+        throw new ErrorHandler({
           success: false,
-          error: 'user already exist',
+          message: 'user already exist',
+          statusCode: 422,
         });
       }
     }
@@ -107,9 +99,10 @@ export const postSignup = async (
   const savedUser = await newUser.save();
 
   if (!savedUser) {
-    return res.status(401).json({
+    throw new ErrorHandler({
       success: false,
-      error: 'user registration failed',
+      message: 'user registration failed',
+      statusCode: 422,
     });
   }
 
@@ -122,6 +115,6 @@ export const postSignup = async (
 
   return res.status(200).json({
     success: true,
-    message: 'Signup successfull',
+    message: 'Signup successful',
   });
 };

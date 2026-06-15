@@ -1,54 +1,44 @@
-import express from 'express';
+import express, { type Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
-import session from 'express-session';
-import connectMongoDB from 'connect-mongodb-session';
-
 import todoRoute from './routes/todoRoute';
 import authRoute from './routes/auth';
-import { get404 } from './controllers/error';
-import User from './models/user';
 import 'dotenv/config';
+import { ErrorHandler } from './middleware/error';
+import { ApiResponse } from './@types';
 
 const app = express();
 
-const MongoDBStore = connectMongoDB(session);
-
-const store = new MongoDBStore({
-  uri: process.env.MONGODB_URI || '',
-  collection: 'sessions',
-});
-
 app.use(express.json());
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || '',
-    resave: false,
-    saveUninitialized: false,
-    store,
-  }),
-);
+// handle cors related issues
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, DELETE, PUT, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-app.use(async (req, _, next) => {
-  const userResponse = req.session.user;
-
-  if (!userResponse) {
-    return next();
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
   }
 
-  const user = await User.findById(userResponse._id).select('-password');
-
-  if (user) {
-    req.user = user;
-  }
-
-  next();
+  return next();
 });
 
 app.use(todoRoute);
 app.use(authRoute);
 
-app.use(get404);
+app.use((error: unknown, _: Request, res: Response<ApiResponse<never>>, next: NextFunction) => {
+  if (error instanceof ErrorHandler) {
+    const { success, message, errors, statusCode } = error;
+
+    res.status(error.statusCode).json({
+      success,
+      statusCode,
+      message,
+      errors,
+    });
+  }
+  next();
+});
 
 mongoose
   .connect(process.env.MONGODB_URI!)

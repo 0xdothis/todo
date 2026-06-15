@@ -1,15 +1,59 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { ApiResponse, ApiError } from '../@types';
+import jwt from 'jsonwebtoken';
+import { ErrorHandler } from './error';
+import 'dotenv/config';
+import { JwtPayload } from 'jsonwebtoken';
 
-export default (req: Request, res: Response<ApiResponse<ApiError>>, next: NextFunction) => {
-  const isLoggedIn = req.session.isLoggedIn;
+export default async (req: Request, _: Response<ApiResponse<ApiError>>, next: NextFunction) => {
+  const token = req.get('Authorization');
+  const secret = process.env.JWT_SECRET;
 
-  if (!isLoggedIn) {
-    return res.status(401).json({
+  if (!token) {
+    throw new ErrorHandler({
       success: false,
-      error: 'Authorization failed, Kindly login',
+      message: 'no token provided',
+      statusCode: 422,
     });
   }
 
-  return next();
+  const authToken = token.split(' ')[1];
+
+  if (!authToken) {
+    throw new ErrorHandler({
+      success: false,
+      message: 'invalid token format',
+      statusCode: 422,
+    });
+  }
+
+  if (!secret) {
+    throw new ErrorHandler({
+      success: false,
+      message: 'secret is not defined',
+      statusCode: 422,
+    });
+  }
+
+  jwt.verify(authToken, secret, (err, decoded) => {
+    if (err) {
+      throw new ErrorHandler({
+        success: false,
+        message: err.message,
+        statusCode: 400,
+      });
+    }
+
+    if (!decoded) {
+      throw new ErrorHandler({
+        success: false,
+        message: 'user is not authenticated',
+        statusCode: 401,
+      });
+    }
+
+    req.user = decoded as JwtPayload;
+  });
+
+  next();
 };
