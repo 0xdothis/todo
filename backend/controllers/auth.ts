@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import { validationResult } from 'express-validator';
 
 import User from '../models/user';
 import { ErrorHandler } from '../middleware/error';
@@ -21,6 +22,17 @@ export const postLogin = async (
   req: Request<never, never, LoginBody>,
   res: Response<ApiResponse<AuthData>>,
 ) => {
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    throw new ErrorHandler({
+      success: false,
+      message: 'kindly review your inputted values',
+      statusCode: 400,
+      errors: error.array(),
+    });
+  }
+
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
@@ -68,10 +80,21 @@ export const postSignup = async (
   req: Request<never, never, SignupBody>,
   res: Response<ApiResponse<never>>,
 ) => {
-  const { email, password, confirmPassword } = req.body;
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    throw new ErrorHandler({
+      success: false,
+      message: 'kindly review your inputted values',
+      statusCode: 400,
+      errors: error.array(),
+    });
+  }
+
+  const { email, name, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {
-    return res.status(401).json({
+    return res.status(422).json({
       success: false,
       message: 'passwords must match',
       statusCode: 422,
@@ -81,20 +104,16 @@ export const postSignup = async (
   const user = await User.findOne({ email });
 
   if (user) {
-    switch (user.email) {
-      case email: {
-        throw new ErrorHandler({
-          success: false,
-          message: 'user already exist',
-          statusCode: 422,
-        });
-      }
-    }
+    throw new ErrorHandler({
+      success: false,
+      message: 'user already exist',
+      statusCode: 422,
+    });
   }
 
   const hashedPassword = await bcrypt.hash(password, Number(process.env.SALT!));
 
-  const newUser = new User({ email, password: hashedPassword });
+  const newUser = new User({ email, name, password: hashedPassword });
 
   const savedUser = await newUser.save();
 

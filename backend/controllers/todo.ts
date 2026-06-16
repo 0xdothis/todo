@@ -8,6 +8,7 @@ import type {
   UpdateTodoBody,
 } from '../@types/index';
 import Todo from '../models/todo';
+import User from '../models/user';
 import { ErrorHandler } from '../middleware/error';
 
 export const getIndex = (_: Request, res: Response) => {
@@ -64,7 +65,7 @@ export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>
 
   return res.status(200).json({
     success: true,
-    message: "todo's",
+    message: 'todos',
     data: todos,
     /** [
         {
@@ -101,7 +102,17 @@ export const postTodo = async (
   req: Request<never, never, CreateTodoBody>,
   res: Response<ApiResponse<TodoItem>>,
 ) => {
-  const todo = new Todo({ ...req.body });
+  const user = await User.findById(req.user?.userId);
+
+  if (!user) {
+    throw new ErrorHandler({
+      success: false,
+      statusCode: 422,
+      message: 'user not authenticated, kindly login',
+    });
+  }
+
+  const todo = new Todo({ ...req.body, userId: user._id });
 
   if (!todo) {
     throw new ErrorHandler({
@@ -113,9 +124,13 @@ export const postTodo = async (
 
   const data = await todo.save();
 
+  user.todos.push(data._id);
+
+  await user.save();
+
   return res.status(201).json({
     success: true,
-    message: 'todo created',
+    message: 'todo created successfully',
     data,
   });
 };
@@ -125,6 +140,15 @@ export const deleteTodo = async (
   res: Response<ApiResponse<TodoItem>>,
 ) => {
   const todoId = req.params.todoId;
+  const user = await User.findById(req.user?.userId);
+
+  if (!user) {
+    throw new ErrorHandler({
+      success: false,
+      statusCode: 422,
+      message: 'user not authenticated, kindly login',
+    });
+  }
 
   if (!Types.ObjectId.isValid(todoId)) {
     throw new ErrorHandler({
@@ -134,7 +158,7 @@ export const deleteTodo = async (
     });
   }
 
-  const todo = await Todo.findOneAndDelete({ _id: todoId });
+  const todo = await Todo.findByIdAndDelete(todoId);
 
   if (!todo) {
     throw new ErrorHandler({
@@ -143,6 +167,8 @@ export const deleteTodo = async (
       statusCode: 404,
     });
   }
+
+  await User.findByIdAndUpdate(req.user?.userId, { $pull: { todos: todoId } });
 
   return res.sendStatus(204);
 };
@@ -175,7 +201,10 @@ export const patchUpdateTodo = async (
     });
   }
 
-  const { modifiedCount } = await Todo.updateOne({ _id: todoId }, { $set: req.body });
+  const { modifiedCount } = await Todo.updateOne(
+    { _id: todoId, userId: req.user?.userId },
+    { $set: req.body },
+  );
 
   if (modifiedCount < 1) {
     throw new ErrorHandler({

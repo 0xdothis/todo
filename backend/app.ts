@@ -24,7 +24,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use(todoRoute);
-app.use(authRoute);
+app.use('/auth', authRoute);
 
 app.use((error: unknown, _: Request, res: Response<ApiResponse<never>>, next: NextFunction) => {
   if (error instanceof ErrorHandler) {
@@ -36,7 +36,62 @@ app.use((error: unknown, _: Request, res: Response<ApiResponse<never>>, next: Ne
       message,
       errors,
     });
+
+    return;
   }
+
+  if (error instanceof mongoose.Error) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 11000) {
+      res.status(409).json({
+        success: false,
+        statusCode: 409,
+        message: error.message,
+      });
+
+      return;
+    }
+
+    switch (error.name) {
+      case 'ValidationError': {
+        res.status(422).json({
+          success: false,
+          statusCode: 422,
+          message: error.message,
+        });
+        return;
+      }
+
+      case 'CastError': {
+        res.status(400).json({
+          success: false,
+          statusCode: 400,
+          message: error.message,
+        });
+        return;
+      }
+
+      case 'DocumentNotFoundError': {
+        res.status(404).json({
+          success: false,
+          statusCode: 404,
+          message: error.message,
+        });
+
+        return;
+      }
+
+      default: {
+        res.status(500).json({
+          success: false,
+          statusCode: 500,
+          message: 'Internal server error',
+        });
+      }
+    }
+
+    return;
+  }
+
   next();
 });
 

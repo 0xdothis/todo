@@ -17,12 +17,12 @@ router.get('/', getIndex);
 
 router.get('/todos', isAuth, getTodos);
 
-router.get('/todos/:todoId', isAuth, getTodo);
+router.get('/todo/:todoId', isAuth, getTodo);
 
-router.post('/todos', isAuth, postTodo);
+router.post('/todo', isAuth, postTodo);
 
-router.delete('/todos/:todoId', isAuth, deleteTodo);
+router.delete('/todo/:todoId', isAuth, deleteTodo);
 
-router.patch('/todos/:todoId', isAuth, patchUpdateTodo);
+router.patch('/todo/:todoId', isAuth, patchUpdateTodo);
 
 export default router;
