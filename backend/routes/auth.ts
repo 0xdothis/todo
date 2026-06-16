@@ -2,7 +2,7 @@ import express, { type Router } from 'express';
 import { body } from 'express-validator';
 import { postSignup, postLogin, postLogout } from '../controllers/auth';
 import User from '../models/user';
-//import { ErrorHandler } from '../middleware/error';
+import isAuth from '../middleware/is-auth';
 
 const router: Router = express.Router();
 
@@ -51,6 +51,6 @@ router.post(
   postSignup,
 );
 
-router.post('/logout', postLogout);
+router.post('/logout', isAuth, postLogout);
 
 export default router;

@@ -39,8 +39,8 @@ export type SignupBody = {
 export type LoginBody = Omit<UserType, 'name' | '_id'>;
 
 export interface AuthData {
-  token: string;
-  userId: ObjectId;
+  token?: string;
+  userId?: ObjectId;
 }
 
 export type AuthUser = {
@@ -53,6 +53,7 @@ export type AuthUser = {
 export interface ApiSuccess<T> {
   success: true;
   message: string;
+  totalTodos?: number;
   data?: T;
 }
 
@@ -66,3 +67,5 @@ export interface ApiError {
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 export type TodoParams = { todoId: string };
+
+export type TodoQuery = { page: string };

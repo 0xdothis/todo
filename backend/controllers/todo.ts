@@ -6,10 +6,12 @@ import type {
   TodoParams,
   CreateTodoBody,
   UpdateTodoBody,
+  TodoQuery,
 } from '../@types/index';
 import Todo from '../models/todo';
 import User from '../models/user';
 import { ErrorHandler } from '../middleware/error';
+import 'dotenv/config';
 
 export const getIndex = (_: Request, res: Response) => {
   return res.status(200).json({
@@ -25,6 +27,14 @@ export const getTodo = async (
 ) => {
   const todoId = req.params.todoId;
 
+  if (!req.user) {
+    throw new ErrorHandler({
+      success: false,
+      statusCode: 401,
+      message: 'kindly login to access your todo',
+    });
+  }
+
   if (!Types.ObjectId.isValid(todoId)) {
     throw new ErrorHandler({
       success: false,
@@ -33,7 +43,7 @@ export const getTodo = async (
     });
   }
 
-  const todo = await Todo.findOne({ _id: todoId });
+  const todo = await Todo.findOne({ _id: todoId, userId: req.user.userId });
 
   if (!todo) {
     throw new ErrorHandler({
@@ -50,51 +60,31 @@ export const getTodo = async (
   });
 };
 
-export const getTodos = async (_: Request, res: Response<ApiResponse<TodoItem[]>>) => {
-  const todos = await Todo.find();
-
-  //const isTodo = todos.some((todo) => todo.userId.toString() === userId?.toString());
-  /**
-  if (todos.length !== 0) {
-    return res.status(401).json({
+export const getTodos = async (
+  req: Request<never, never, never, TodoQuery>,
+  res: Response<ApiResponse<TodoItem[]>>,
+) => {
+  if (!req.user) {
+    throw new ErrorHandler({
       success: false,
-      message: 'login to access your todos',
+      statusCode: 401,
+      message: 'kindly login to access your todo',
     });
   }
-  */
+
+  const totalTodos = await Todo.find({ userId: req.user.userId }).countDocuments();
+  const page = +req.query.page || 1;
+  const perPage = Number(process.env.TODO_PER_PAGE);
+
+  const todos = await Todo.find({ userId: req.user.userId })
+    .skip((page - 1) * perPage)
+    .limit(perPage);
 
   return res.status(200).json({
     success: true,
     message: 'todos',
     data: todos,
-    /** [
-        {
-          "id": 1,
-          "title": "Cook beans",
-          "description": "I cook my own beans"
-        },
-        {
-          "id": 2,
-          "title": "Walk the dog",
-          "description": "Walk the dog around the neighborhood"
-        },
-        {
-          "id": 3,
-          "title": "Clean the house",
-          "description": "make sure the mop every 48hours"
-        },
-        {
-          "id": 4,
-          "title": "Excersice",
-          "description": "Go to the gym by 4pm"
-        },
-        {
-          "id": 5,
-          "title": "Webwinar confrence",
-          "description": "Attend the webwinar confrence"
-        },
-      ],
-      */
+    totalTodos,
   });
 };
 
@@ -102,7 +92,15 @@ export const postTodo = async (
   req: Request<never, never, CreateTodoBody>,
   res: Response<ApiResponse<TodoItem>>,
 ) => {
-  const user = await User.findById(req.user?.userId);
+  if (!req.user) {
+    throw new ErrorHandler({
+      success: false,
+      statusCode: 401,
+      message: 'kindly login to create todo',
+    });
+  }
+
+  const user = await User.findById(req.user.userId);
 
   if (!user) {
     throw new ErrorHandler({
@@ -140,7 +138,16 @@ export const deleteTodo = async (
   res: Response<ApiResponse<TodoItem>>,
 ) => {
   const todoId = req.params.todoId;
-  const user = await User.findById(req.user?.userId);
+
+  if (!req.user) {
+    throw new ErrorHandler({
+      success: false,
+      statusCode: 401,
+      message: 'kindly login to access your todo',
+    });
+  }
+
+  const user = await User.findById(req.user.userId);
 
   if (!user) {
     throw new ErrorHandler({
@@ -158,7 +165,7 @@ export const deleteTodo = async (
     });
   }
 
-  const todo = await Todo.findByIdAndDelete(todoId);
+  const todo = await Todo.findOneAndDelete({ _id: todoId, userId: req.user.userId });
 
   if (!todo) {
     throw new ErrorHandler({
@@ -168,7 +175,7 @@ export const deleteTodo = async (
     });
   }
 
-  await User.findByIdAndUpdate(req.user?.userId, { $pull: { todos: todoId } });
+  await User.findByIdAndUpdate(req.user.userId, { $pull: { todos: todoId } });
 
   return res.sendStatus(204);
 };
@@ -177,21 +184,15 @@ export const patchUpdateTodo = async (
   req: Request<TodoParams, never, UpdateTodoBody>,
   res: Response<ApiResponse<TodoItem>>,
 ) => {
-  // const updateData = req.body;
-  /**
-    if(!["title", "description"].every(key => key in updateData)) {
-
-      return res.status(400).json({
-      status: 'Bad Request',
-      statusCode: 400,
-      error: {
-        message: 'title or description cannot be empty'
-      }
-
-    })
-    }
-  */
   const todoId = req.params.todoId;
+
+  if (!req.user) {
+    throw new ErrorHandler({
+      success: false,
+      statusCode: 401,
+      message: 'kindly login to access your todo',
+    });
+  }
 
   if (!Types.ObjectId.isValid(todoId)) {
     throw new ErrorHandler({
@@ -202,7 +203,7 @@ export const patchUpdateTodo = async (
   }
 
   const { modifiedCount } = await Todo.updateOne(
-    { _id: todoId, userId: req.user?.userId },
+    { _id: todoId, userId: req.user.userId },
     { $set: req.body },
   );
 

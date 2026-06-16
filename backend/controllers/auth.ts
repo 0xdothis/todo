@@ -74,7 +74,23 @@ export const postLogin = async (
   });
 };
 
-export const postLogout = async () => {};
+export const postLogout = async (req: Request, res: Response<ApiResponse<AuthData>>) => {
+  if (req.user) {
+    req.user = null;
+
+    return res.status(200).json({
+      success: true,
+      message: 'logged out successful',
+      data: { token: '', userId: undefined },
+    });
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: 'you are already logged out',
+    statusCode: 403,
+  });
+};
 
 export const postSignup = async (
   req: Request<never, never, SignupBody>,

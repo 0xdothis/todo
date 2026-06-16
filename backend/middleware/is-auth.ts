@@ -12,8 +12,8 @@ export default async (req: Request, _: Response<ApiResponse<ApiError>>, next: Ne
   if (!token) {
     throw new ErrorHandler({
       success: false,
-      message: 'no token provided',
-      statusCode: 422,
+      message: 'not authenticated, kindly login in',
+      statusCode: 401,
     });
   }
 
